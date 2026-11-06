@@ -8,7 +8,7 @@
     "lib": ["ESNext"],
     "types": [
       "@cloudflare/workers-types",
-      "@cloudflare/vitest-pool-workers/types"
+      "@cloudflare/vitest-plugin/types"
     ]
   },
   "include": ["src/**/*", "test/**/*", "vitest.config.ts"]

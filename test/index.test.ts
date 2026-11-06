@@ -283,6 +283,37 @@ describe("POST /v1/report", () => {
     // The fingerprint may appear, but only as a totals key.
     expect(stored.some(({ table, text }) => table === "totals" && text === `cli|${FINGERPRINT}`)).toBe(true);
   });
+
+  it("rejects a crash fingerprint key containing '|' with 400 and writes nothing", async () => {
+    const res = await post(report({ crashes: { cli: { "Error|with|separator": 1 } } }));
+    expect(res.status).toBe(400);
+    expect((await totals()).size).toBe(0);
+  });
+
+  it("counts only the update command for the x:installer_update_exit cross", async () => {
+    const res = await post(
+      report({
+        installer: "uv",
+        exits: {
+          cli: {
+            "video t2v": { "0": 5, "1": 2 },
+            update: { "0": 3, "2": 1 },
+            login: { "0": 4 },
+          },
+          mcp: {
+            update: { "0": 2 },
+            "image t2i": { "0": 6 },
+          },
+        },
+      }),
+    );
+    expect(res.status).toBe(204);
+    const t = await totals();
+    expect(t.get(`${WEEK}/x:installer_update_exit/uv|0`)).toBe(3 + 2);
+    expect(t.get(`${WEEK}/x:installer_update_exit/uv|2`)).toBe(1);
+    const updateKeys = [...t.keys()].filter((k) => k.includes("installer_update_exit"));
+    expect(updateKeys).toHaveLength(2);
+  });
 });
 
 describe("routing through the deployed worker entry", () => {
