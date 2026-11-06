@@ -2,7 +2,7 @@ name = "gflow-telemetry"
 main = "src/index.ts"
 account_id = "6e84ee0d4c899e5b5fa648302e0bfba9"
 workers_dev = true
-compatibility_date = "2026-10-01"
+compatibility_date = "2026-08-22"
 
 # No per-request logs: observability off, no logpush, no console output of request data.
 [observability]
