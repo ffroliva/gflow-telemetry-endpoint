@@ -316,6 +316,30 @@ describe("POST /v1/report", () => {
   });
 });
 
+describe("engines and hosts (gflow-cli #1326)", () => {
+  it("adds engines and hosts totals from a report that carries them", async () => {
+    const res = await post(report({ engines: { patchright: 2, playwright: 1 }, hosts: { flow: 3 } }));
+    expect(res.status).toBe(204);
+    const t = await totals();
+    expect(t.get(`${WEEK}/engines/patchright`)).toBe(2);
+    expect(t.get(`${WEEK}/engines/playwright`)).toBe(1);
+    expect(t.get(`${WEEK}/hosts/flow`)).toBe(3);
+  });
+
+  it("still accepts a schema 1 report without either map", async () => {
+    expect((await post(report())).status).toBe(204);
+  });
+
+  it.each([
+    [{ engines: { chromium: 1 } }],
+    [{ hosts: { "flow.google.com": 1 } }],
+    [{ hosts: { flow: { cli: 1 } } }],
+  ])("rejects a value outside the closed enum with 400 and writes nothing: %j", async (extra) => {
+    expect((await post(report(extra))).status).toBe(400);
+    expect((await totals()).size).toBe(0);
+  });
+});
+
 describe("routing through the deployed worker entry", () => {
   it("answers 204 to POST /v1/report", async () => {
     // SELF uses real server time, so build a report for the current ISO week.
