@@ -4,7 +4,7 @@ export interface Env {
   [key: string]: unknown;
 }
 
-type KeyKind = "surface" | "key" | "toolResult";
+type KeyKind = "surface" | "key" | "toolResult" | "engine" | "host";
 
 const VALID_SURFACES = new Set(["cli", "mcp"]);
 const VALID_OS = new Set(["windows", "linux", "darwin", "other"]);
@@ -12,6 +12,9 @@ const VALID_ARCH = new Set(["x86_64", "arm64", "other"]);
 const VALID_INSTALLER = new Set(["uv", "pipx", "pip", "other"]);
 const VALID_INSTALL_AGE = new Set(["<1w", "<1m", "<6m", "6m+"]);
 const VALID_STORAGE = new Set(["local", "s3", "gcs", "other"]);
+// Closed sets (gflow-cli #1326): a raw hostname or engine name never reaches the totals.
+const VALID_ENGINES = new Set(["playwright", "patchright", "other"]);
+const VALID_HOSTS = new Set(["labs", "flow", "unknown"]);
 
 const SCALAR_VALIDATORS: Record<string, (v: string) => boolean> = {
   version: (v) => /^[0-9A-Za-z.+-]{1,32}$/.test(v),
@@ -36,6 +39,8 @@ const SHAPES: Record<string, readonly KeyKind[]> = {
   aspects: ["key"],
   outcomes: ["key"],
   mcp_clients: ["key"],
+  engines: ["engine"],
+  hosts: ["host"],
 };
 
 const ALLOWED_KEYS = new Set([
@@ -62,6 +67,8 @@ const KEY_VALIDATORS: Record<KeyKind, (k: string) => boolean> = {
   surface: (k) => VALID_SURFACES.has(k),
   key: isValidKey,
   toolResult: (k) => k === "expanded" || k === "unchanged",
+  engine: (k) => VALID_ENGINES.has(k),
+  host: (k) => VALID_HOSTS.has(k),
 };
 
 interface Leaf {
