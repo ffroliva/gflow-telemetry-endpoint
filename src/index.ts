@@ -4,7 +4,7 @@ export interface Env {
   [key: string]: unknown;
 }
 
-type KeyKind = "surface" | "key" | "toolResult" | "engine" | "host";
+type KeyKind = "surface" | "key" | "toolResult" | "engine" | "host" | "transport";
 
 const VALID_SURFACES = new Set(["cli", "mcp"]);
 const VALID_OS = new Set(["windows", "linux", "darwin", "other"]);
@@ -15,6 +15,8 @@ const VALID_STORAGE = new Set(["local", "s3", "gcs", "other"]);
 // Closed sets (gflow-cli #1326): a raw hostname or engine name never reaches the totals.
 const VALID_ENGINES = new Set(["playwright", "patchright", "other"]);
 const VALID_HOSTS = new Set(["labs", "flow", "unknown"]);
+// gflow-cli #1442: which image transport made a run's images; never a raw transport name.
+const VALID_TRANSPORTS = new Set(["direct", "ui", "other"]);
 
 const SCALAR_VALIDATORS: Record<string, (v: string) => boolean> = {
   version: (v) => /^[0-9A-Za-z.+-]{1,32}$/.test(v),
@@ -41,6 +43,7 @@ const SHAPES: Record<string, readonly KeyKind[]> = {
   mcp_clients: ["key"],
   engines: ["engine"],
   hosts: ["host"],
+  transports: ["transport"],
 };
 
 const ALLOWED_KEYS = new Set([
@@ -69,6 +72,7 @@ const KEY_VALIDATORS: Record<KeyKind, (k: string) => boolean> = {
   toolResult: (k) => k === "expanded" || k === "unchanged",
   engine: (k) => VALID_ENGINES.has(k),
   host: (k) => VALID_HOSTS.has(k),
+  transport: (k) => VALID_TRANSPORTS.has(k),
 };
 
 interface Leaf {

@@ -340,6 +340,30 @@ describe("engines and hosts (gflow-cli #1326)", () => {
   });
 });
 
+describe("transports (gflow-cli #1442)", () => {
+  it("adds transports totals from a report that carries them", async () => {
+    const res = await post(report({ transports: { direct: 2, ui: 5, other: 1 } }));
+    expect(res.status).toBe(204);
+    const t = await totals();
+    expect(t.get(`${WEEK}/transports/direct`)).toBe(2);
+    expect(t.get(`${WEEK}/transports/ui`)).toBe(5);
+    expect(t.get(`${WEEK}/transports/other`)).toBe(1);
+  });
+
+  it("still accepts a report without the map", async () => {
+    expect((await post(report())).status).toBe(204);
+  });
+
+  it.each([
+    [{ transports: { direct_http: 1 } }],
+    [{ transports: { unknown: 1 } }],
+    [{ transports: { direct: { cli: 1 } } }],
+  ])("rejects a value outside the closed enum with 400 and writes nothing: %j", async (extra) => {
+    expect((await post(report(extra))).status).toBe(400);
+    expect((await totals()).size).toBe(0);
+  });
+});
+
 describe("routing through the deployed worker entry", () => {
   it("answers 204 to POST /v1/report", async () => {
     // SELF uses real server time, so build a report for the current ISO week.
